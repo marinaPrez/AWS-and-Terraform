@@ -233,8 +233,10 @@ resource "aws_lb_listener" "web" {
   default_action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.web.arn
-  }
+     }
 }
+
+
 
 resource "aws_lb_target_group" "web" {
   name     = "web-target-group"
@@ -245,11 +247,16 @@ resource "aws_lb_target_group" "web" {
   health_check {
     enabled = true
     path    = "/"
-  }
-
+      }   
+  stickiness {    
+    type            = "lb_cookie"    
+    cookie_duration = 60    
+    enabled         = true 
+       }    
+  
   tags = {
     "Name" = "web-target-group"
-  }
+         }
 }
 
 resource "aws_lb_target_group_attachment" "web_server" {
