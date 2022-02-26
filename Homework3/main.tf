@@ -199,10 +199,15 @@ user_data = <<EOF
 #!bin/bash
 sudo yum install nginx -y
 sudo systemctl start nginx
-echo "Welcome to Grandpa's Whiskey" | sudo tee /usr/share/nginx/html/index.html
+echo "Welcome to Grandpa's Whiskey at  $HOSTNAME " | sudo tee /usr/share/nginx/html/index.html
 EOF
 
 }
+
+output "ec2_global_ips" {
+  value = ["${aws_instance.web-server.*.public_ip}"]
+}
+
 
 #############################
 #create load balancer
