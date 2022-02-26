@@ -216,7 +216,7 @@ resource "aws_iam_instance_profile" "web_profile" {
 ###################################
 resource "aws_instance" "web-server" {
   count                    = 2
-  ami                      = "ami-0b28dfc7adc325ef4"
+  ami                      = "ami-0341aeea105412b57"
   instance_type            = "t3.micro"
   vpc_security_group_ids   = ["${aws_security_group.web_sg.id}"]
   subnet_id                = aws_subnet.public.*.id[count.index]
@@ -246,9 +246,11 @@ resource "aws_instance" "web-server" {
 
 user_data = <<EOF
 #!bin/bash
-sudo yum install nginx -y
+sudo amazon-linux-extras install nginx1 -y
 sudo systemctl start nginx
 echo "Welcome to Grandpa's Whiskey at  $HOSTNAME " | sudo tee /usr/share/nginx/html/index.html
+sudo sh -c 'echo -e "#!/bin/bash \nsudo aws s3 cp /var/log/nginx/access.log  s3://terraform-bucket-maya/logs" > /etc/cron.hourly/upload_to_s3.sh'
+sudo chmod +x /etc/cron.hourly/upload_to_s3.sh
 EOF
 
 }
