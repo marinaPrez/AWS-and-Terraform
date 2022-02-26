@@ -137,29 +137,48 @@ resource "aws_security_group" "web_sg" {
   name        = "web sg"
   vpc_id      = aws_vpc.wiskey_vpc.id
   description = "Allow ssh and standard http/https ports inbound and everything outbound"
-
-  dynamic "ingress" {
-    iterator = port
-    for_each = var.ingressrules
-    content {
-      from_port   = port.value
-      to_port     = port.value
-      protocol    = "TCP"
-      cidr_blocks = ["0.0.0.0/0"]
+  tags = {
+    "Terraform" = "true"
     }
-  }
 
-  egress {
+}
+
+
+resource "aws_security_group_rule" "ingress_80" {
+    type             = "ingress"
+    from_port        = 80
+    to_port          = 80
+    protocol         = "tcp"
+    cidr_blocks      = ["0.0.0.0/0"]
+    security_group_id = "${aws_security_group.web_sg.id}"
+
+
+}
+
+
+resource "aws_security_group_rule" "ingress_22" {
+    type             = "ingress"
+    from_port        = 22
+    to_port          = 22
+    protocol         = "tcp"
+    cidr_blocks      = ["0.0.0.0/0"]
+    security_group_id = "${aws_security_group.web_sg.id}"
+
+}
+
+
+
+
+resource "aws_security_group_rule" "egress" {
+    type =      "egress"
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = {
-    "Terraform" = "true"
-  }
+    security_group_id = "${aws_security_group.web_sg.id}"
 }
+
+
 ##################################
 # create ssh keys
 #################################
@@ -227,9 +246,6 @@ resource "aws_instance" "web-server" {
 
 user_data = <<EOF
 #!bin/bash
-echo "#####################################"
-file /var/log/nginx/access.log
-echo "####################################"
 sudo yum install nginx -y
 sudo systemctl start nginx
 echo "Welcome to Grandpa's Whiskey at  $HOSTNAME " | sudo tee /usr/share/nginx/html/index.html
