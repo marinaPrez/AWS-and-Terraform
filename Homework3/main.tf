@@ -160,6 +160,36 @@ resource "aws_security_group" "web_sg" {
     "Terraform" = "true"
   }
 }
+##################################
+# create ssh keys
+#################################
+
+resource "tls_private_key" "demo_key" {
+  algorithm = "RSA"
+  rsa_bits  = 2048
+}
+resource "aws_key_pair" "demo_key" {
+  key_name   = "demo"
+  public_key = tls_private_key.demo_key.public_key_openssh
+}
+# Save generated key pair locally
+  resource "local_file" "server_key" {
+  sensitive_content  = tls_private_key.demo_key.private_key_pem
+  filename           = "private.pem"
+}
+
+#######################################
+#create instance profile
+#####################################
+
+resource "aws_iam_instance_profile" "web_profile" {
+  name = "web_profile"
+  role = "EC2_admin"
+  #role  = "s3_read_role"
+}
+
+
+
 
 
 ####################################
@@ -170,10 +200,10 @@ resource "aws_instance" "web-server" {
   ami                      = "ami-0b28dfc7adc325ef4"
   instance_type            = "t3.micro"
   vpc_security_group_ids   = ["${aws_security_group.web_sg.id}"]
-  #subnet_id                = aws_subnet.public.id[count.index]
   subnet_id                = aws_subnet.public.*.id[count.index]
-  #key_name                = "${aws_key_pair.demo_key.key_name}"
+  key_name                = "${aws_key_pair.demo_key.key_name}"
   associate_public_ip_address = true
+  iam_instance_profile = "${aws_iam_instance_profile.web_profile.name}"
   tags = {
     Name       = "Web_Server_${count.index}"
     Purpose    = "web server"
@@ -197,6 +227,9 @@ resource "aws_instance" "web-server" {
 
 user_data = <<EOF
 #!bin/bash
+echo "#####################################"
+file /var/log/nginx/access.log
+echo "####################################"
 sudo yum install nginx -y
 sudo systemctl start nginx
 echo "Welcome to Grandpa's Whiskey at  $HOSTNAME " | sudo tee /usr/share/nginx/html/index.html
