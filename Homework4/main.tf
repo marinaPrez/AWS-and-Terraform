@@ -188,7 +188,7 @@ resource "tls_private_key" "cloud_key" {
   rsa_bits  = 2048
 }
 resource "aws_key_pair" "cloud_key" {
-  key_name   = "demo"
+  key_name   = "cloud_key"
   public_key = tls_private_key.cloud_key.public_key_openssh
 }
 # Save generated key pair locally
@@ -202,7 +202,7 @@ resource "aws_key_pair" "cloud_key" {
 #####################################
 
 resource "aws_iam_instance_profile" "web_profile_cloud" {
-  name = "web_profile"
+  name = "web_profile_cloud"
   role = "EC2_admin"
   #role  = "s3_read_role"
 }
