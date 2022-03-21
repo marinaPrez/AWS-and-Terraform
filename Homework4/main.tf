@@ -183,17 +183,17 @@ resource "aws_security_group_rule" "egress" {
 # create ssh keys
 #################################
 
-resource "tls_private_key" "demo_key" {
+resource "tls_private_key" "cloud_key" {
   algorithm = "RSA"
   rsa_bits  = 2048
 }
-resource "aws_key_pair" "demo_key" {
+resource "aws_key_pair" "cloud_key" {
   key_name   = "demo"
-  public_key = tls_private_key.demo_key.public_key_openssh
+  public_key = tls_private_key.cloud_key.public_key_openssh
 }
 # Save generated key pair locally
   resource "local_file" "server_key" {
-  sensitive_content  = tls_private_key.demo_key.private_key_pem
+  sensitive_content  = tls_private_key.cloud_key.private_key_pem
   filename           = "private.pem"
 }
 
@@ -220,7 +220,7 @@ resource "aws_instance" "web-server" {
   instance_type            = "t3.micro"
   vpc_security_group_ids   = ["${aws_security_group.web_sg.id}"]
   subnet_id                = aws_subnet.public.*.id[count.index]
-  key_name                = "${aws_key_pair.demo_key.key_name}"
+  key_name                = "${aws_key_pair.cloud_key.key_name}"
   associate_public_ip_address = true
   iam_instance_profile = "${aws_iam_instance_profile.web_profile.name}"
   tags = {
