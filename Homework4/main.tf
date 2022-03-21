@@ -201,7 +201,7 @@ resource "aws_key_pair" "cloud_key" {
 #create instance profile
 #####################################
 
-resource "aws_iam_instance_profile" "web_profile" {
+resource "aws_iam_instance_profile" "web_profile_cloud" {
   name = "web_profile"
   role = "EC2_admin"
   #role  = "s3_read_role"
@@ -265,7 +265,7 @@ output "ec2_global_ips" {
 ############################
 
 resource "aws_lb" "web-servers" {
-  name                       = "webServersLB"
+  name                       = "webServersLB_cloud"
   internal                   = false
   load_balancer_type         = "application"
   subnets                    = aws_subnet.public.*.id
@@ -290,7 +290,7 @@ resource "aws_lb_listener" "web" {
 
 
 resource "aws_lb_target_group" "web" {
-  name     = "web-target-group"
+  name     = "web-target-group_cloud"
   port     = 80
   protocol = "HTTP"
   vpc_id   = aws_vpc.wiskey_vpc.id
